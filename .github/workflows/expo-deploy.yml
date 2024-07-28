@@ -53,7 +53,7 @@ jobs:
           username: ${{ secrets.MAIL_USERNAME }}
           password: ${{ secrets.MAIL_PASSWORD }}
           subject: "${{ github.job }} job of ${{ github.repository }} has ${{ job.status }}"
-          to: your-email@example.com  # Replace with your email address
+          to: aharonmathews04@gmail.com  # Replace with your email address
           from: Developer
           body: "${{ github.job }} job in workflow ${{ github.workflow }} of ${{ github.repository }} has ${{ job.status }}. APK URL: ${{ env.apk_url }}"
           secure: true
