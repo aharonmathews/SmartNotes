@@ -4,13 +4,13 @@ import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
-  apiKey: "",
-  authDomain: "",
-  projectId: "",
-  storageBucket: "",
-  messagingSenderId: "",
-  appId: "",
-  measurementId: ""
+  apiKey: "AIzaSyD8HnMJ2RDg1mI9admURUh340tHWgw7NjA",
+  authDomain: "note-taking-141e4.firebaseapp.com",
+  projectId: "note-taking-141e4",
+  storageBucket: "note-taking-141e4.appspot.com",
+  messagingSenderId: "783864738414",
+  appId: "1:783864738414:web:42faca5356ac9e0281ec7f",
+  measurementId: "G-BRSCTNFJQ5"
 };
 
 const FIREBASE_APP = initializeApp(firebaseConfig);
