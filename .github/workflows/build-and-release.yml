@@ -1,0 +1,109 @@
+name: Build and release Expo app
+
+on:
+  push:
+    branches:
+      - "release"
+
+jobs:
+  update:
+    name: EAS Update
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for EXPO_TOKEN
+        run: |
+          if [ -z "${{secrets.EXPO_TOKEN}}" ]; then
+            echo "You must provide an EXPO_TOKEN secret linked to this project's Expo account in this repo's secrets."
+            exit 1
+          fi
+
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16.x'  # Ensure Node.js version 16
+
+      - name: Install EAS CLI
+        run: npm install -g eas-cli
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build APK
+        run: npx eas build --profile preview --platform android --non-interactive --clear-cache
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Get APK URL from Expo
+        id: get_apk_url
+        run: |
+          apk_url=$(npx eas build:list --json --limit=1 --platform=android | jq -r .[0].artifacts.buildUrl)
+          echo "apk_url=$apk_url" >> $GITHUB_ENV
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Send mail
+        if: always()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          subject: "${{ github.job }} job of ${{ github.repository }} has ${{ job.status }}"
+          to: aharonmathews04@gmail.com  # Replace with your email address
+          from: Developer
+          body: "${{ github.job }} job in workflow ${{ github.workflow }} of ${{ github.repository }} has ${{ job.status }}. APK URL: ${{ env.apk_url }}"
+          secure: true
+          ignore_cert: true
+          convert_markdown: true
+          priority: low
+
+      - name: Download APK file
+        uses: suisei-cn/actions-download-file@v1
+        id: downloadfile
+        with:
+          url: ${{ env.apk_url }}
+          target: public/
+          auto_match: true
+
+      - name: List directory contents
+        run: ls -R public
+
+      - name: Zip APK file
+        uses: thedoctor/zip-release@v1
+        with:
+          path: public/
+          filename: demo-app.zip
+
+      - name: Create Release
+        id: create_new_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ github.run_number }}
+          release_name: Release v${{ github.run_number }}
+
+      - name: Upload asset to GitHub release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_new_release.outputs.upload_url }}
+          asset_path: ./demo-app.zip
+          asset_name: demo-app-v${{ github.run_number }}.zip
+          asset_content_type: application/zip
+
+  delete-release:
+    runs-on: ubuntu-latest
+    needs: update
+    steps:
+      - uses: dev-drprasad/delete-older-releases@v0.2.0
+        with:
+          repo: aharonmathews/SmartNotes
+          keep_latest: 2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
