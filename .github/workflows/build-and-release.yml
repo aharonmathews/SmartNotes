@@ -3,7 +3,7 @@ name: Build and release Expo app
 on:
   push:
     branches:
-      - "release"
+      - "master"
 
 jobs:
   update:
@@ -23,7 +23,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: '16.x'  # Ensure Node.js version 16
+          node-version: '20.x'  # Ensure Node.js version 20
 
       - name: Install EAS CLI
         run: npm install -g eas-cli
@@ -39,7 +39,7 @@ jobs:
       - name: Get APK URL from Expo
         id: get_apk_url
         run: |
-          apk_url=$(npx eas build:list --json --limit=1 --platform=android | jq -r .[0].artifacts.buildUrl)
+          apk_url=$(npx eas build:list --json --limit=1 --platform=android | jq -r '.[0].artifacts.buildUrl')
           echo "apk_url=$apk_url" >> $GITHUB_ENV
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
@@ -67,16 +67,14 @@ jobs:
         with:
           url: ${{ env.apk_url }}
           target: public/
-          auto_match: true
 
       - name: List directory contents
         run: ls -R public
 
       - name: Zip APK file
-        uses: thedoctor/zip-release@v1
+        uses: montudor/action-zip@v1
         with:
-          path: public/
-          filename: demo-app.zip
+          args: zip -r public/demo-app.zip public/
 
       - name: Create Release
         id: create_new_release
@@ -84,8 +82,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: v${{ github.run_number }}
-          release_name: Release v${{ github.run_number }}
+          tag_name: SmartNotes-v0.1  # Custom release tag name
+          release_name: SmartNotes Release v0.1  # Custom release name
+          body: "This is the initial release of the SmartNotes app. This release includes basic functionalities for note-taking."
 
       - name: Upload asset to GitHub release
         uses: actions/upload-release-asset@v1
@@ -93,8 +92,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_new_release.outputs.upload_url }}
-          asset_path: ./demo-app.zip
-          asset_name: demo-app-v${{ github.run_number }}.zip
+          asset_path: public/demo-app.zip
+          asset_name: SmartNotes-v0.1.zip  # Custom asset name
           asset_content_type: application/zip
 
   delete-release:

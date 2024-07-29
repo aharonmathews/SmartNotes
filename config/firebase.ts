@@ -1,18 +1,23 @@
-// config/firebase.js
+// config/firebase.ts
 import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import { initializeAuth, getReactNativePersistence } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+
 
 const firebaseConfig = {
-  apiKey: "AIzaSyD8HnMJ2RDg1mI9admURUh340tHWgw7NjA",
-  authDomain: "note-taking-141e4.firebaseapp.com",
-  projectId: "note-taking-141e4",
-  storageBucket: "note-taking-141e4.appspot.com",
-  messagingSenderId: "783864738414",
-  appId: "1:783864738414:web:42faca5356ac9e0281ec7f",
-  measurementId: "G-BRSCTNFJQ5"
+  apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
+  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.REACT_APP_FIREBASE_APP_ID,
+  measurementId: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID
 };
 
 const FIREBASE_APP = initializeApp(firebaseConfig);
-export const FIREBASE_AUTH = getAuth(FIREBASE_APP);
+export const FIREBASE_AUTH = initializeAuth(FIREBASE_APP, {
+  persistence: getReactNativePersistence(AsyncStorage)
+});
 export const FIREBASE_DB = getFirestore(FIREBASE_APP);

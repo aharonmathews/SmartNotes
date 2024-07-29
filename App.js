@@ -12,7 +12,12 @@ import ChangePassword from './pages/changepassword'
 import AddNote from './pages/addnote'
 import NoteDetails from './pages/notedetails'
 
+import { AppRegistry } from 'react-native';
+import { name as appName } from './app.json';
+
 const Stack = createNativeStackNavigator();
+
+AppRegistry.registerComponent(appName, () => App);
 
 export default function() {
 
