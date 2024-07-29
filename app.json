@@ -15,11 +15,11 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.aharonmathews.smartnotes",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      },
-      "package": "com.aharonmathews.smartnotes"
+      }
     },
     "web": {
       "favicon": "./assets/favicon.png"

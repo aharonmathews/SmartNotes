@@ -52,10 +52,10 @@ jobs:
           server_port: 465
           username: ${{ secrets.MAIL_USERNAME }}
           password: ${{ secrets.MAIL_PASSWORD }}
-          subject: "${{ github.job }} job of ${{ github.repository }} has ${{ job.status }}"
+          subject: "SmartNotes Build Status"
           to: aharonmathews04@gmail.com  # Replace with your email address
           from: Developer
-          body: "${{ github.job }} job in workflow ${{ github.workflow }} of ${{ github.repository }} has ${{ job.status }}. APK URL: ${{ env.apk_url }}"
+          body: "The build process for the SmartNotes app has completed with status: ${{ job.status }}. APK URL: ${{ env.apk_url }}"
           secure: true
           ignore_cert: true
           convert_markdown: true
