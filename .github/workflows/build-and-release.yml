@@ -83,7 +83,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: SmartNotes-v0.1  # Custom release tag name
-          release_name: SmartNotes Release v0.1  # Custom release name
+          release_name: "SmartNotes Release v0.1 - The First Note"  # Custom release name
           body: "This is the initial release of the SmartNotes app. This release includes basic functionalities for note-taking."
 
       - name: Upload asset to GitHub release
