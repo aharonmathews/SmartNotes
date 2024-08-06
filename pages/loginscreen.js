@@ -89,6 +89,7 @@ const LoginScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#f0ffff',
   },
   
   contentOverlay: {
@@ -122,6 +123,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     fontSize: 16,
     width: 200,
+    borderColor: '#ffa500',
   },
   primaryContainer: {
     backgroundColor: '#000',
@@ -139,7 +141,7 @@ const styles = StyleSheet.create({
     margin:10,
   },
   createAccountText: {
-    color: '#000',
+    color: '#fff',
   },
   horizontalContainer: {
     flexDirection: 'row',

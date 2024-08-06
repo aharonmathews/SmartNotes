@@ -1,77 +1,89 @@
-import React, { useState } from "react";
-import { View, TextInput, TouchableOpacity, StyleSheet } from "react-native";
-import Icon from "react-native-vector-icons/FontAwesome";
-import { useNavigation } from "@react-navigation/native";
-import { addDoc, collection } from "firebase/firestore";
-import { FIREBASE_DB, FIREBASE_AUTH } from "../config/firebase"; // Ensure the correct import
+import React, { useState } from 'react';
+import { Text, View, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { FIREBASE_DB, FIREBASE_AUTH } from '../config/firebase';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 
-const AddNote = () => {
-  const navigation = useNavigation();
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
-  const userId = FIREBASE_AUTH.currentUser.uid;
+const AddNote = ({ navigation }) => {
+  const [title, setTitle] = useState('');
+  const [content, setContent] = useState('');
 
-  const handleSave = async () => {
+  const auth = FIREBASE_AUTH;
+
+  const saveNote = async () => {
     try {
-      await addDoc(collection(FIREBASE_DB, "ListOfNotes"), {
+      const userId = auth.currentUser.uid;
+      await addDoc(collection(FIREBASE_DB, 'ListOfNotes'), {
         title,
         content,
-        userId, // Add user ID
-        createdAt: new Date(),
+        userId,
+        createdAt: serverTimestamp(),
       });
-      navigation.goBack();
+      console.log('Note added successfully');
     } catch (error) {
-      console.error("Error adding note: ", error);
+      console.error('Error adding note:', error);
     }
+  };
+
+  const handleSaveAndContinue = async () => {
+    await saveNote();
+    // Don't navigate back to LandingPage immediately
   };
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Icon name="arrow-left" size={24} color="black" />
-        </TouchableOpacity>
-        <TextInput
-          style={styles.title}
-          placeholder="Title"
-          value={title}
-          onChangeText={setTitle}
-        />
-        <TouchableOpacity onPress={handleSave}>
-          <Icon name="check" size={24} color="black" />
-        </TouchableOpacity>
+        <Text style={styles.headerText}>Add Note</Text>
       </View>
       <TextInput
-        style={styles.content}
-        placeholder="Note"
+        style={styles.input}
+        placeholder="Title"
+        value={title}
+        onChangeText={setTitle}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Content"
         value={content}
         onChangeText={setContent}
         multiline
       />
+      <TouchableOpacity style={styles.saveButton} onPress={handleSaveAndContinue}>
+        <Icon name="check" size={30} color="#fff" />
+      </TouchableOpacity>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 26,
     flex: 1,
     padding: 16,
-    backgroundColor: "white",
   },
   header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 16,
+    height: '30%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f5f5f5',
   },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
+  headerText: {
+    fontSize: 32,
+    fontWeight: 'bold',
   },
-  content: {
+  input: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+    padding: 8,
+    marginVertical: 8,
     fontSize: 18,
-    lineHeight: 24,
+  },
+  saveButton: {
+    position: 'absolute',
+    right: 16,
+    bottom: 16,
+    backgroundColor: '#f44336',
+    borderRadius: 30,
+    padding: 16,
   },
 });
 

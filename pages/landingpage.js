@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Text, View, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
-import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, deleteDoc, doc, writeBatch } from 'firebase/firestore';
 import { FIREBASE_DB, FIREBASE_AUTH } from '../config/firebase';
 import { useFocusEffect } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -8,8 +8,9 @@ import Modal from 'react-native-modal';
 
 const LandingPage = ({ navigation }) => {
   const [notes, setNotes] = useState([]);
-  const auth = FIREBASE_AUTH;
+  const [selectedNotes, setSelectedNotes] = useState([]);
   const [menuVisible, setMenuVisible] = useState(false);
+  const auth = FIREBASE_AUTH;
 
   useFocusEffect(
     React.useCallback(() => {
@@ -29,13 +30,42 @@ const LandingPage = ({ navigation }) => {
     }, [])
   );
 
+  const toggleNoteSelection = (noteId) => {
+    setSelectedNotes((prevSelectedNotes) => {
+      if (prevSelectedNotes.includes(noteId)) {
+        return prevSelectedNotes.filter((id) => id !== noteId);
+      } else {
+        return [...prevSelectedNotes, noteId];
+      }
+    });
+  };
+
+  const deleteSelectedNotes = async () => {
+    try {
+      const batch = writeBatch(FIREBASE_DB);
+      selectedNotes.forEach((noteId) => {
+        const noteRef = doc(FIREBASE_DB, 'ListOfNotes', noteId);
+        batch.delete(noteRef);
+      });
+      await batch.commit();
+      setSelectedNotes([]);
+      console.log('Selected notes deleted successfully');
+    } catch (error) {
+      console.error('Error deleting selected notes:', error);
+    }
+  };
+
   const renderNoteItem = ({ item }) => (
     <TouchableOpacity
-      style={styles.noteItem}
+      style={[
+        styles.noteItem,
+        selectedNotes.includes(item.id) && styles.selectedNoteItem,
+      ]}
       onPress={() => {
         console.log("Navigating to NoteDetails with noteId:", item.id);
         navigation.navigate('NoteDetails', { note: item });
       }}
+      onLongPress={() => toggleNoteSelection(item.id)}
     >
       <Text style={styles.noteTitle}>{item.title}</Text>
       <Text style={styles.noteContent}>{item.content}</Text>
@@ -50,9 +80,17 @@ const LandingPage = ({ navigation }) => {
         style={styles.modal}
       >
         <View style={styles.modalContent}>
-          <Text style={styles.modalText}>Try Gemini AI</Text>
-          <TouchableOpacity onPress={() => navigation.navigate('ChatBot')}>
-            <Text style={styles.modalButton}>Chatbot</Text>
+          <TouchableOpacity onPress={() => {
+            setMenuVisible(false);
+            navigation.navigate('LandingPage');
+          }}>
+            <Text style={styles.modalButton}>Notes</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => {
+            setMenuVisible(false);
+            navigation.navigate('ChatBot');
+          }}>
+            <Text style={styles.modalButton}>ChatBot(Gemini AI)</Text>
           </TouchableOpacity>
           <Text style={styles.modalText}>Theme</Text>
           <TouchableOpacity onPress={() => console.log('Switch to Light Mode')}>
@@ -72,10 +110,10 @@ const LandingPage = ({ navigation }) => {
       </View>
       <View style={styles.accessibilityBar}>
         <TouchableOpacity style={styles.menuButton} onPress={() => setMenuVisible(true)}>
-          <Icon name={menuVisible ? 'close' : 'menu'} size={30} color="#fff" />
+          <Icon name={menuVisible ? 'close' : 'menu'} size={30} color="#000" />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.moreButton} onPress={() => console.log('Open more options')}>
-          <Icon name="more-vert" size={30} color="#fff" />
+        <TouchableOpacity style={styles.deleteButton} onPress={deleteSelectedNotes}>
+          <Icon name="delete" size={30} color="#000" />
         </TouchableOpacity>
       </View>
       <FlatList
@@ -95,12 +133,14 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
+    backgroundColor: '#f0ffff',
+    
   },
   header: {
     height: '30%',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#f0ffff',
   },
   headerText: {
     fontSize: 32,
@@ -111,10 +151,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingVertical: 8,
-    backgroundColor: '#000',
   },
   menuButton: {
     padding: 8,
+
   },
   moreButton: {
     padding: 8,
@@ -125,8 +165,9 @@ const styles = StyleSheet.create({
   },
   noteItem: {
     padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
+    borderBottomWidth: 2,
+    borderBottomColor: '#ffa500',
+    borderRadius: 8,
   },
   noteTitle: {
     fontSize: 18,
@@ -139,7 +180,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: 16,
     bottom: 16,
-    backgroundColor: '#f44336',
+    backgroundColor: '#ffa500',
     borderRadius: 30,
     padding: 16,
   },
@@ -150,22 +191,29 @@ const styles = StyleSheet.create({
   modalContent: {
     width: '80%',
     height: '100%',
-    backgroundColor: '#fff',
+    backgroundColor: '#f0ffff',
     padding: 16,
   },
   modalText: {
-    fontSize: 18,
+    fontSize: 21,
     marginBottom: 8,
+    marginTop: 28,
   },
   modalButton: {
-    fontSize: 16,
-    color: '#007BFF',
+    fontSize: 20,
+    color: '#ffa500',
     marginBottom: 8,
   },
   closeModalButton: {
     position: 'absolute',
     top: 16,
     right: 16,
+  },
+  selectedNoteItem: {
+    backgroundColor: '#d3d3d3',
+  },
+  deleteButton: {
+    padding: 8,
   },
 });
 

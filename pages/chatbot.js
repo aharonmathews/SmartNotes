@@ -1,3 +1,4 @@
+// GeminiChat.js
 import React, { useState, useEffect } from "react";
 import * as GoogleGenerativeAI from "@google/generative-ai";
 import {
@@ -9,6 +10,7 @@ import {
   TouchableOpacity,
 } from "react-native";
 import * as Speech from "expo-speech";
+import Modal from 'react-native-modal';
 import Icon from "react-native-vector-icons/FontAwesome";
 import FlashMessage, { showMessage } from "react-native-flash-message";
 
@@ -17,6 +19,8 @@ const GeminiChat = ({ navigation }) => {
   const [userInput, setUserInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [menuVisible, setMenuVisible] = useState(false);
+
 
   const API_KEY = "AIzaSyDD07J4iNMK_-U_xEZz_B-8mFyiyiT-HAw";
 
@@ -58,84 +62,97 @@ const GeminiChat = ({ navigation }) => {
     const result = await model.generateContent(prompt);
     const response = result.response;
     const text = response.text();
-    setMessages((prevMessages) => [...prevMessages, { text, user: false }]);
-    setLoading(false);
-    setUserInput("");
 
-    if (text && !isSpeaking) {
-      Speech.speak(text);
-      setIsSpeaking(true);
-    }
+    const aiMessage = { text, user: false };
+    setMessages((prevMessages) => [...prevMessages, aiMessage]);
+    setUserInput("");
+    setLoading(false);
   };
 
-  const toggleSpeech = () => {
-    console.log("isSpeaking", isSpeaking);
-    if (isSpeaking) {
-      Speech.stop();
-      setIsSpeaking(false);
-    } else {
-      Speech.speak(messages[messages.length - 1].text);
+  const speakMessage = (message) => {
+    if (!isSpeaking) {
       setIsSpeaking(true);
+      Speech.speak(message, {
+        onDone: () => setIsSpeaking(false),
+        onStopped: () => setIsSpeaking(false),
+      });
     }
   };
 
   const clearMessages = () => {
     setMessages([]);
-    setIsSpeaking(false);
   };
 
-  const renderMessage = ({ item }) => (
+  const renderItem = ({ item }) => (
     <View
       style={[
         styles.messageContainer,
-        item.user ? styles.userMessageContainer : styles.aiMessageContainer,
+        item.user ? styles.userMessage : styles.aiMessage,
       ]}
     >
-      <Text style={[styles.messageText, item.user && styles.userMessage]}>
-        {item.text}
-      </Text>
+      <Text style={styles.messageText}>{item.text}</Text>
+      <TouchableOpacity
+        style={styles.speakButton}
+        onPress={() => speakMessage(item.text)}
+      >
+        <Icon name="volume-up" size={20} color="#fff" />
+      </TouchableOpacity>
     </View>
   );
 
   return (
+    
     <View style={styles.container}>
+    <Modal
+        isVisible={menuVisible}
+        onBackdropPress={() => setMenuVisible(false)}
+        style={styles.modal}
+      >
+        <View style={styles.modalContent}>
+          <TouchableOpacity onPress={() => {
+            setMenuVisible(false);
+            navigation.navigate('LandingPage');
+          }}>
+            <Text style={styles.modalButton}>Notes</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => {
+            setMenuVisible(false);
+            navigation.navigate('ChatBot');
+          }}>
+            <Text style={styles.modalButton}>ChatBot</Text>
+          </TouchableOpacity>
+          <Text style={styles.modalText}>Theme</Text>
+          <TouchableOpacity onPress={() => console.log('Switch to Light Mode')}>
+            <Text style={styles.modalButton}>Light Mode</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => console.log('Switch to Dark Mode')}>
+            <Text style={styles.modalButton}>Dark Mode</Text>
+          </TouchableOpacity>
+        </View>
+        <TouchableOpacity style={styles.closeModalButton} onPress={() => setMenuVisible(false)}>
+          <Icon name="close" size={30} color="#000" />
+        </TouchableOpacity>
+      </Modal>
+      <FlashMessage position="top" />
       <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.menuButton}
-          onPress={() => navigation.toggleDrawer()}
-        >
-          <Icon name="bars" size={24} color="white" />
-        </TouchableOpacity>
         <Text style={styles.headerText}>GeminiAI Chatbot</Text>
-        <TouchableOpacity style={styles.clearButton} onPress={clearMessages}>
-          <Icon name="trash" size={24} color="white" />
-        </TouchableOpacity>
       </View>
+      
       <FlatList
         data={messages}
-        renderItem={renderMessage}
+        renderItem={renderItem}
         keyExtractor={(item, index) => index.toString()}
-        contentContainerStyle={styles.flatListContent}
+        contentContainerStyle={styles.messagesList}
       />
       <View style={styles.inputContainer}>
-        <TouchableOpacity style={styles.speakerIcon} onPress={toggleSpeech}>
-          <Icon
-            name={isSpeaking ? "volume-off" : "volume-up"}
-            size={24}
-            color="white"
-            style={styles.icon}
-          />
-        </TouchableOpacity>
         <TextInput
-          placeholder="Type a message"
-          onChangeText={setUserInput}
-          value={userInput}
-          onSubmitEditing={sendMessage}
           style={styles.input}
-          placeholderTextColor="#fff"
+          placeholder="Type a message..."
+          value={userInput}
+          onChangeText={setUserInput}
         />
-        <TouchableOpacity style={styles.sendIcon} onPress={sendMessage}>
-          <Icon name="send" size={24} color="white" style={styles.icon} />
+        <TouchableOpacity style={styles.sendButton} onPress={sendMessage} disabled={loading}>
+          <Icon name="send" size={20} color="#000" />
         </TouchableOpacity>
       </View>
     </View>
@@ -143,77 +160,100 @@ const GeminiChat = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#ffffff", marginTop: 50 },
+  container: {
+    flex: 1,
+    padding: 16,
+    backgroundColor: '#f0ffff',
+  },
   header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: 10,
-    backgroundColor: "#000000",
+    height: '10%',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   headerText: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "white",
+    fontSize: 28,
+    fontWeight: 'semibold',
+  },
+  accessibilityBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8,
+    backgroundColor: '#000',
   },
   menuButton: {
-    padding: 10,
+    padding: 8,
   },
   clearButton: {
-    padding: 10,
-    backgroundColor: "#f44336",
-    borderRadius: 25,
+    padding: 8,
   },
-  flatListContent: {
-    padding: 10,
+  messagesList: {
+    flexGrow: 1,
+    paddingTop: 16,
   },
   messageContainer: {
-    padding: 10,
-    marginVertical: 5,
-    backgroundColor: "#000000",
-    borderRadius: 10,
-    marginHorizontal: 10,
+    padding: 16,
+    marginBottom: 8,
+    borderRadius: 8,
   },
-  userMessageContainer: {
-    backgroundColor: "#333333",
+  userMessage: {
+    alignSelf: 'flex-end',
+    backgroundColor: '#ffa368',
+    borderRadius: 8,
   },
-  aiMessageContainer: {
-    backgroundColor: "#000000",
+  aiMessage: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#ffa500',
+    alignItems:'left',
+    width: '90%',
   },
-  messageText: { fontSize: 16, color: "#ffffff" },
-  userMessage: { fontWeight: "bold" },
-  inputContainer: { flexDirection: "row", alignItems: "center", padding: 10 },
+  messageText: {
+    fontSize: 16,
+    color: '#fff',
+  },
+  speakButton: {
+    marginTop: 8,
+    alignItems: 'flex-end',
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#000',
+  },
   input: {
     flex: 1,
-    padding: 10,
-    backgroundColor: "#131314",
-    borderRadius: 10,
-    height: 50,
-    color: "white",
+    padding: 8,
+    borderColor: '#ffa500',
+    borderWidth: 1,
+    borderRadius: 8,
+    marginRight: 8,
   },
-  speakerIcon: {
-    padding: 10,
-    backgroundColor: "#131314",
-    borderRadius: 25,
-    height: 50,
-    width: 50,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 5,
+  modal: {
+    justifyContent: 'flex-start',
+    margin: 0,
   },
-  sendIcon: {
-    padding: 10,
-    backgroundColor: "#131314",
-    borderRadius: 25,
-    height: 50,
-    width: 50,
-    justifyContent: "center",
-    alignItems: "center",
-    marginLeft: 5,
+  modalContent: {
+    width: '80%',
+    height: '100%',
+    backgroundColor: '#fff',
+    padding: 16,
   },
-  icon: {
-    color: "white",
+  modalText: {
+    fontSize: 18,
+    marginBottom: 8,
+  },
+  modalButton: {
+    fontSize: 16,
+    color: '#007BFF',
+    marginBottom: 8,
+  },
+  closeModalButton: {
+    position: 'absolute',
+    top: 16,
+    right: 16,
   },
 });
-
 export default GeminiChat;
