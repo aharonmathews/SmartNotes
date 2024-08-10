@@ -10,6 +10,7 @@ import CreateAccount from './pages/createaccount';
 import ChangePassword from './pages/changepassword';
 import AddNote from './pages/addnote';
 import NoteDetails from './pages/notedetails';
+import Profile from './pages/profile';
 
 const Stack = createNativeStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -33,6 +34,7 @@ export default function App() {
         <Stack.Screen name="LandingPage" component={LandingPage} options={{ headerShown: false }} />
         <Stack.Screen name="ChatBot" component={ChatBot} options={{ headerShown: false }} />        
         <Stack.Screen name="Main" component={DrawerNavigator} options={{ headerShown: false }} />
+        <Stack.Screen name='Profile' component={Profile} options={{headerShown:false}} />
       </Stack.Navigator>
     </NavigationContainer>
   );

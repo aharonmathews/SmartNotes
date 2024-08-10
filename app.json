@@ -29,6 +29,10 @@
         "projectId": "925daa9d-eff4-4231-a786-601f2b1b4edf"
       }
     },
-    "owner": "aharonmathews"
+    "owner": "aharonmathews",
+    "plugins": [
+      "expo-router"
+    ],
+    "assetBundlePatterns": ["**/*"]
   }
 }

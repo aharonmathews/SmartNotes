@@ -82,16 +82,26 @@ const LandingPage = ({ navigation }) => {
         <View style={styles.modalContent}>
           <TouchableOpacity onPress={() => {
             setMenuVisible(false);
+            navigation.navigate('Profile');
+          }}>
+            <Text style={styles.modalButton}>Profile</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity onPress={() => {
+            setMenuVisible(false);
             navigation.navigate('LandingPage');
           }}>
             <Text style={styles.modalButton}>Notes</Text>
           </TouchableOpacity>
+          
+          
           <TouchableOpacity onPress={() => {
             setMenuVisible(false);
             navigation.navigate('ChatBot');
           }}>
             <Text style={styles.modalButton}>ChatBot(Gemini AI)</Text>
           </TouchableOpacity>
+          
           <Text style={styles.modalText}>Theme</Text>
           <TouchableOpacity onPress={() => console.log('Switch to Light Mode')}>
             <Text style={styles.modalButton}>Light Mode</Text>
