@@ -12,7 +12,6 @@ const NoteDetails = ({ route, navigation }) => {
   const { note } = route.params;
   const [title, setTitle] = useState(note.title);
   const [content, setContent] = useState(note.content);
-  const [menuVisible, setMenuVisible] = useState(false);
 
   const noteRef = doc(FIREBASE_DB, 'ListOfNotes', note.id);
 
@@ -72,43 +71,23 @@ const NoteDetails = ({ route, navigation }) => {
 
   return (
     <View style={styles.container}>
-      <Modal
-        isVisible={menuVisible}
-        onBackdropPress={() => setMenuVisible(false)}
-        style={styles.modal}
-      >
-        <View style={styles.modalContent}>
-          <TouchableOpacity onPress={() => {
-            setMenuVisible(false);
-            navigation.navigate('LandingPage');
-          }}>
-            <Text style={styles.modalButton}>Notes</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => {
-            setMenuVisible(false);
-            navigation.navigate('ChatBot');
-          }}>
-            <Text style={styles.modalButton}>ChatBot</Text>
-          </TouchableOpacity>
-          <Text style={styles.modalText}>Theme</Text>
-          <TouchableOpacity onPress={() => console.log('Switch to Light Mode')}>
-            <Text style={styles.modalButton}>Light Mode</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => console.log('Switch to Dark Mode')}>
-            <Text style={styles.modalButton}>Dark Mode</Text>
-          </TouchableOpacity>
-        </View>
-        <TouchableOpacity style={styles.closeModalButton} onPress={() => setMenuVisible(false)}>
-          <Icon name="close" size={30} color="#fff" />
-        </TouchableOpacity>
-      </Modal>
+      
       <View style={styles.header}>
+        <TouchableOpacity style={styles.closeDetailsButton} onPress={() => navigation.goBack()}>
+          <Icon name="keyboard-arrow-left" size={33} color="#000" />
+        </TouchableOpacity>
         <TextInput
           style={styles.title}
           value={title}
           onChangeText={(text) => setTitle(text)}
           placeholder="Title"
         />
+          <TouchableOpacity style={styles.deleteButton} onPress={deleteNote}>
+            <Icon name="delete" size={30} color="#000" />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.summarizeButton} onPress={summarizeNote}>
+            <Icon name="description" size={30} color="#000" />
+          </TouchableOpacity>
       </View>
       <TextInput
         style={styles.content}
@@ -118,12 +97,7 @@ const NoteDetails = ({ route, navigation }) => {
         placeholder="Content"
       />
       <View style={styles.footer}>
-        <TouchableOpacity style={styles.deleteButton} onPress={deleteNote}>
-          <Icon name="delete" size={30} color="#fff" />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.summarizeButton} onPress={summarizeNote}>
-          <Icon name="description" size={30} color="#fff" />
-        </TouchableOpacity>
+        
       </View>
     </View>
   );
@@ -133,59 +107,44 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
+    marginTop: 10,
   },
   header: {
     height: 60,
-    justifyContent: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
+    borderBottomWidth: 2,
+    borderBottomLeftRadius: 10,
+    borderBottomRightRadius: 10,
+    borderBottomColor: '#ffa500',
+    flexDirection: 'row',
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
+    left: 20,
   },
   content: {
-    fontSize: 18,
-    top:0
-  },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: 4,
-    backgroundColor: '#000',
-    bottom: 0
+    fontSize: 20,
+    top:0,
+    fontWeight: '400',
+    padding: 10,
   },
   deleteButton: {
-    padding: 8,
+    justifyContent: 'center',
+    marginLeft:'auto',
+    marginRight: 20,
   },
   summarizeButton: {
-    padding: 8,
-    
+    marginRight: 20,
+    justifyContent: 'center',
   },
-  modal: {
-    justifyContent: 'flex-start',
-    margin: 0,
+  closeDetailsButton: {
+    justifyContent: 'center',
+    marginLeft: 0,
   },
-  modalContent: {
-    width: '80%',
-    height: '100%',
-    backgroundColor: '#fff',
-    padding: 16,
-  },
-  modalText: {
-    fontSize: 18,
-    marginBottom: 8,
-  },
-  modalButton: {
-    fontSize: 16,
-    color: '#007BFF',
-    marginBottom: 8,
-  },
-  closeModalButton: {
-    position: 'absolute',
-    top: 16,
-    right: 16,
-  },
+  headerExtra: {
+    marginTop: 'auto',
+    flexDirection: 'row',
+  }
 });
 
 export default NoteDetails;

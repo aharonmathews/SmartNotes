@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, TextInput, Button, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient'; 
-
+import { useAsyncStorage } from '@react-native-async-storage/async-storage';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
 import { FIREBASE_AUTH } from '../config/firebase';
 import { Ionicons } from '@expo/vector-icons';
@@ -11,13 +11,38 @@ const LoginScreen = ({ navigation }) => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const { getItem, setItem } = useAsyncStorage('user');
+  
   const auth = FIREBASE_AUTH;
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      const user = await useAsyncStorage.getItem('user');
+      if (user) {
+        const parsedUser = JSON.parse(user);
+        if (parsedUser && parsedUser.uid) {
+          console.log('User ID:', parsedUser.uid);
+          // Proceed with your logic
+        } else {
+          console.log('User data is incomplete or invalid');
+          // Handle the case where uid is missing
+        }
+      } else {
+        console.log('No user data found');
+        // Handle the case where no user data is available
+      }
+    };
+  
+    fetchUserData();
+  }, []);
+  
 
   const signIn = async () => {
     setLoading(true);
     try {
       const response = await signInWithEmailAndPassword(auth, email, password);
       console.log(response);
+      await setItem('user', JSON.stringify(response.auth));
       navigation.navigate('LandingPage');
     } catch (error) {
       console.log(error);
@@ -64,7 +89,7 @@ const LoginScreen = ({ navigation }) => {
               </TouchableOpacity>
             </View>
             <View style={styles.primaryContainer}>
-              <Button title="Login" onPress={signIn} color="transparent" ></Button>
+              <Button title="Login" onPress={signIn} color="transparent" disabled={loading}></Button>
             </View>
             <View style={styles.horizontalContainer}>
               <Text style={styles.dontHaveAccountText}>
